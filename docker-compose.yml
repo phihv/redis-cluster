@@ -1,0 +1,108 @@
+version: '3.9'
+
+services:
+  redis1:
+    image: bitnami/redis-cluster:latest
+    container_name: redis1
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_NODES=redis1,redis2,redis3,redis4,redis5,redis6
+    networks:
+      redis-cluster:
+        ipv4_address: 172.19.0.11
+    ports:
+      - "6379:6379"
+
+  redis2:
+    image: bitnami/redis-cluster:latest
+    container_name: redis2
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_NODES=redis1,redis2,redis3,redis4,redis5,redis6
+    networks:
+      redis-cluster:
+        ipv4_address: 172.19.0.12
+    ports:
+      - "6380:6379"
+
+  redis3:
+    image: bitnami/redis-cluster:latest
+    container_name: redis3
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_NODES=redis1,redis2,redis3,redis4,redis5,redis6
+    networks:
+      redis-cluster:
+        ipv4_address: 172.19.0.13
+    ports:
+      - "6381:6379"
+
+  redis4:
+    image: bitnami/redis-cluster:latest
+    container_name: redis4
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_NODES=redis1,redis2,redis3,redis4,redis5,redis6
+    networks:
+      redis-cluster:
+        ipv4_address: 172.19.0.14
+    ports:
+      - "6382:6379"
+
+  redis5:
+    image: bitnami/redis-cluster:latest
+    container_name: redis5
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_NODES=redis1,redis2,redis3,redis4,redis5,redis6
+    networks:
+      redis-cluster:
+        ipv4_address: 172.19.0.15
+    ports:
+      - "6383:6379"
+
+  redis6:
+    image: bitnami/redis-cluster:latest
+    container_name: redis6
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_NODES=redis1,redis2,redis3,redis4,redis5,redis6
+    networks:
+      redis-cluster:
+        ipv4_address: 172.19.0.16
+    ports:
+      - "6384:6379"
+
+  setup:
+    image: bitnami/redis-cluster:latest
+    container_name: setup
+    depends_on:
+      - redis1
+      - redis2
+      - redis3
+      - redis4
+      - redis5
+      - redis6
+    networks:
+      redis-cluster:
+        ipv4_address: 172.19.0.17
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        echo "Waiting for Redis nodes to be ready...";
+        sleep 10;
+        redis-cli --cluster create \
+          redis1:6379 redis2:6379 redis3:6379 \
+          redis4:6379 redis5:6379 redis6:6379 \
+          --cluster-replicas 1 --cluster-yes;
+        echo "Redis cluster setup complete.";
+
+networks:
+  redis-cluster:
+    name: redis-cluster
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.19.0.0/16"
